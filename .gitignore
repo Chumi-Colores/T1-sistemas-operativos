@@ -1,0 +1,6 @@
+.vscode
+/obj/
+DCCambios
+*.txt
+*.csv
+*pdf
