@@ -63,13 +63,6 @@ void update_running_process(Scheduler* scheduler, size_t tick)
     //  3) Primer proceso en estado READY de la cola Low.
 }
 
-void update_ticks(Scheduler* scheduler, size_t tick){
-    scheduler->high_queue.processes->current_tick = tick;
-    scheduler->low_queue.processes->current_tick = tick;
-
-    update_waiting_times(scheduler);
-}
-
 void update_waiting_times(Scheduler* scheduler){
     for (size_t i = 0; i < scheduler->process_count; i++)
     {
@@ -82,6 +75,13 @@ void update_waiting_times(Scheduler* scheduler){
             scheduler->processes[i].time_spent_io_waiting = 0;
         }
     }
+}
+
+void update_ticks(Scheduler* scheduler, size_t tick){
+    scheduler->high_queue.processes->current_tick = tick;
+    scheduler->low_queue.processes->current_tick = tick;
+
+    update_waiting_times(scheduler);
 }
 
 void free_Scheduler(Scheduler* scheduler)
