@@ -4,7 +4,7 @@
 #include <string.h>
 #include "process.h"
 #include "event.h"
-#include "schedualer.h"
+#include "scheduler.h"
 #include "event_controller.h"
 
 void write_processes_from_file_to_array(FILE* file, Process* processes, int K)
@@ -40,18 +40,18 @@ void write_events_from_file_to_array(FILE* file, Event* events, int N)
 }
 
 
-void run_simulation(EventController* event_controller, Schedualer* schedualer)
+void run_simulation(EventController* event_controller, Scheduler* scheduler)
 {
     size_t tick = 0;
-    while ((event_controller->events_remaining > 0 || schedualer->active_processes_amount > 0))
+    while ((event_controller->events_remaining > 0 || scheduler->active_processes_amount > 0))
     {
-        execute_events(event_controller, schedualer, tick);
-        update_waiting_processes(schedualer, tick);
-        update_expired_processes(schedualer, tick);
-        update_running_processes(schedualer, tick);
-        update_queues(schedualer, tick);
-        update_priorities(schedualer, tick);
-        update_running_process(schedualer, tick);
+        execute_events(event_controller, scheduler, tick);
+        update_waiting_processes(scheduler, tick);
+        update_expired_processes(scheduler, tick);
+        update_running_processes(scheduler, tick);
+        update_queues(scheduler, tick);
+        update_priorities(scheduler, tick);
+        update_running_process(scheduler, tick);
         tick += 1;
     }
 }
@@ -78,8 +78,8 @@ int main(int argc, char **argv) {
     Process processes[K];
     write_processes_from_file_to_array(input_file, processes, K);
 
-    Schedualer schedualer;
-    initialize_Schedualer(&schedualer, processes, K, q);
+    Scheduler scheduler;
+    initialize_Scheduler(&scheduler, processes, K, q);
     
     Event events[N];
     write_events_from_file_to_array(input_file, events, N);
@@ -87,9 +87,9 @@ int main(int argc, char **argv) {
     EventController event_controller;
     initialize_EventController(&event_controller, events, N);
 
-    run_simulation(&event_controller, &schedualer);
+    run_simulation(&event_controller, &scheduler);
 
-    free_Schedualer(&schedualer);
+    free_Scheduler(&scheduler);
 
 	fclose(input_file);
 	fclose(output_file);

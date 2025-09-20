@@ -15,4 +15,4 @@ typedef struct
 
 void initialize_EventController(EventController* event_controller, Event* events, int K);
 
-void execute_events(EventController* event_controller, Schedualer* Schedualer, size_t tick);
+void execute_events(EventController* event_controller, Scheduler* Scheduler, size_t tick);
