@@ -30,7 +30,7 @@ void heapify_up(ProcessHeap* heap, size_t idx) {
     }
 }
 
-double get_process_priority(Process* process, int current_tick)
+double get_process_priority(Process* process, size_t current_tick)
 {
     size_t time_until_deadline = process->deadline_time - current_tick;
     double priority = (1.0/time_until_deadline) + process->bursts_remaining;
@@ -67,7 +67,7 @@ void heapify_down(ProcessHeap* heap, size_t idx) {
     }
 }
 
-int compare_process(const Process* process_1_pointer, const Process* process_2_pointer, int current_tick) {
+int compare_process(const Process* process_1_pointer, const Process* process_2_pointer, size_t current_tick) {
     double process_1_priority = get_process_priority((Process*)process_1_pointer, current_tick);
     double process_2_priority = get_process_priority((Process*)process_2_pointer, current_tick);
 

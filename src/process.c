@@ -14,7 +14,9 @@ void initialize_Process(Process* process, char* name, pid_t pid, size_t start_ti
     process->burst_duration = burst_duration;
     process->bursts_remaining = bursts_remaining;
     process->io_wait_duration = io_wait_duration;
+    process->time_spent_io_waiting = 0;
     process->deadline_time = deadline_time;
+    process->state = WAITING;
 }
 
 void free_Process(Process* process)

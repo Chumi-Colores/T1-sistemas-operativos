@@ -10,5 +10,9 @@ typedef struct {
     Process** data;   // arreglo de punteros a Process
     size_t size;      // elementos actuales
     size_t capacity;  // capacidad del arreglo
-    int current_tick;
+    size_t current_tick;
 } ProcessHeap;
+
+Process* heap_extract_max(ProcessHeap* heap);
+
+void heap_insert(ProcessHeap* heap, Process* proc);

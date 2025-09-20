@@ -42,7 +42,7 @@ void write_events_from_file_to_array(FILE* file, Event* events, int N)
 
 void run_simulation(EventController* event_controller, Scheduler* scheduler)
 {
-    int tick = 0;
+    size_t tick = 0;
     printf("Running simulation...\n");
     while ((event_controller->events_remaining > 0 || scheduler->active_processes_amount > 0))
     {
@@ -55,9 +55,9 @@ void run_simulation(EventController* event_controller, Scheduler* scheduler)
         update_running_process(scheduler, tick);
 
         tick += 1;
-        update_ticks_in_queues(scheduler, tick);
+        update_ticks(scheduler, tick);
 
-        printf("Tick terminado %d\n", tick);
+        printf("Tick terminado %zu\n", tick);
     }
 }
 

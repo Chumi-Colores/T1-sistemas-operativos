@@ -6,6 +6,14 @@
 #include <string.h>
 
 
+typedef enum {
+    WAITING,
+    READY,
+    RUNNING,
+    FINISHED,
+    DEAD
+} ProcessState;
+
 typedef struct
 {
     char* name;
@@ -14,7 +22,9 @@ typedef struct
     size_t burst_duration;
     size_t bursts_remaining;
     size_t io_wait_duration;
+    size_t time_spent_io_waiting;
     size_t deadline_time;
+    ProcessState state;
 } Process;
 
 
