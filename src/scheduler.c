@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "process_heap.h"
 #include "scheduler.h"
 
 void initialize_Scheduler(Scheduler* scheduler, Process* processes, int number_of_processes, int q)
@@ -10,8 +11,10 @@ void initialize_Scheduler(Scheduler* scheduler, Process* processes, int number_o
     scheduler->processes = processes;
     scheduler->process_count = number_of_processes;
     scheduler->active_processes_amount = 0;
-    initialize_Queue(&scheduler->high_queue, q+q, number_of_processes);
-    initialize_Queue(&scheduler->low_queue, q, number_of_processes);
+    ProcessHeap* high_queue = create_heap(q, number_of_processes);
+    ProcessHeap* low_queue = create_heap(q, number_of_processes);
+    scheduler->high_queue = high_queue;
+    scheduler->low_queue = low_queue;
     scheduler->current_tick = 0;
 }
 
@@ -106,8 +109,8 @@ void update_ticks(Scheduler* scheduler){
     scheduler->current_tick += 1;
     size_t tick = scheduler->current_tick;
 
-    scheduler->high_queue.current_tick = tick;
-    scheduler->low_queue.current_tick = tick;
+    scheduler->high_queue->current_tick = tick;
+    scheduler->low_queue->current_tick = tick;
 
     update_waiting_times(scheduler);
 }

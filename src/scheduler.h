@@ -12,8 +12,8 @@ typedef struct
 {
     Process* processes;
     int process_count;
-    ProcessHeap high_queue;
-    ProcessHeap low_queue;
+    ProcessHeap* high_queue;
+    ProcessHeap* low_queue;
     int active_processes_amount;
     size_t current_tick;
 } Scheduler;

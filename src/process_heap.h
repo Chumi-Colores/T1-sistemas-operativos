@@ -14,6 +14,8 @@ typedef struct {
     size_t current_tick;
 } ProcessHeap;
 
+ProcessHeap* create_heap(int quantum, int capacity);
+
 Process* heap_extract_max(ProcessHeap* heap);
 
 void heap_insert(ProcessHeap* heap, Process* proc);
