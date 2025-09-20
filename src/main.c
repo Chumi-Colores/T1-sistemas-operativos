@@ -7,7 +7,7 @@
 #include "scheduler.h"
 #include "event_controller.h"
 
-void write_processes_from_file_to_array(FILE* file, Process* processes, int K)
+void write_processes_from_file_to_array(FILE* file, Process* processes, int number_of_processes)
 {
     Process* p;
     char name[128];
@@ -17,7 +17,7 @@ void write_processes_from_file_to_array(FILE* file, Process* processes, int K)
     size_t bursts_remaining;
     size_t io_wait_duration;
     size_t deadline_time;
-    for (size_t i = 0; i < K; i++)
+    for (size_t i = 0; i < number_of_processes; i++)
     {
         p = &processes[i];
         fscanf(file, "%127s %d %zu %zu %zu %zu %zu", name, &pid, &start_time, &burst_duration, &bursts_remaining, &io_wait_duration, &deadline_time);
@@ -42,7 +42,8 @@ void write_events_from_file_to_array(FILE* file, Event* events, int N)
 
 void run_simulation(EventController* event_controller, Scheduler* scheduler)
 {
-    size_t tick = 0;
+    int tick = 0;
+    printf("Running simulation...\n");
     while ((event_controller->events_remaining > 0 || scheduler->active_processes_amount > 0))
     {
         execute_events(event_controller, scheduler, tick);
@@ -52,9 +53,14 @@ void run_simulation(EventController* event_controller, Scheduler* scheduler)
         update_queues(scheduler, tick);
         update_priorities(scheduler, tick);
         update_running_process(scheduler, tick);
+
         tick += 1;
+        update_ticks_in_queues(scheduler, tick);
+
+        printf("Tick terminado %d\n", tick);
     }
 }
+
 
 int main(int argc, char **argv) {
 	if (argc != 3) {
@@ -68,18 +74,18 @@ int main(int argc, char **argv) {
 	int q; // Número para calcular quantum
 	fscanf(input_file, "%d", &q);
 
-    int K; // Número de procesos
-	fscanf(input_file, "%d", &K);
+    int number_of_processes; // Número de procesos
+	fscanf(input_file, "%d", &number_of_processes);
 
 	int N; // Número de eventos
 	fscanf(input_file, "%d", &N);
 
 
-    Process processes[K];
-    write_processes_from_file_to_array(input_file, processes, K);
+    Process processes[number_of_processes];
+    write_processes_from_file_to_array(input_file, processes, number_of_processes);
 
     Scheduler scheduler;
-    initialize_Scheduler(&scheduler, processes, K, q);
+    initialize_Scheduler(&scheduler, processes, number_of_processes, q);
     
     Event events[N];
     write_events_from_file_to_array(input_file, events, N);
@@ -96,3 +102,4 @@ int main(int argc, char **argv) {
 
 	return EXIT_SUCCESS;
 }
+

@@ -17,18 +17,20 @@ typedef struct
 } Scheduler;
 
 
-void initialize_Scheduler(Scheduler* scheduler, Process* processes, int K, int q);
+void initialize_Scheduler(Scheduler* scheduler, Process* processes, int number_of_processes, int q);
 
-void update_waiting_processes(Scheduler* scheduler, size_t tick);
+void update_waiting_processes(Scheduler* scheduler, int tick);
 
-void update_expired_processes(Scheduler* scheduler, size_t tick);
+void update_expired_processes(Scheduler* scheduler, int tick);
 
-void update_running_processes(Scheduler* scheduler, size_t tick);
+void update_running_processes(Scheduler* scheduler, int tick);
 
-void update_queues(Scheduler* scheduler, size_t tick);
+void update_queues(Scheduler* scheduler, int tick);
 
-void update_priorities(Scheduler* scheduler, size_t tick);
+void update_priorities(Scheduler* scheduler, int tick);
 
-void update_running_process(Scheduler* scheduler, size_t tick);
+void update_running_process(Scheduler* scheduler, int tick);
+
+void update_ticks_in_queues(Scheduler* scheduler, int tick);
 
 void free_Scheduler(Scheduler* scheduler);
