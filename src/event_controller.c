@@ -13,7 +13,7 @@ void initialize_EventController(EventController* event_controller, Event* events
     event_controller->events_remaining = number_of_events;
 }
 
-void execute_events(EventController* event_controller, Scheduler* scheduler, size_t tick)
+void execute_events(EventController* event_controller, Scheduler* scheduler)
 {
     if (event_controller->events_remaining == 0) return;
 }

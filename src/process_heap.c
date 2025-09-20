@@ -5,8 +5,9 @@
 #include "process.h"
 #include "process_heap.h"
 
-ProcessHeap* create_heap(size_t capacity) {
+ProcessHeap* create_heap(int quantum, size_t capacity) {
     ProcessHeap* heap = malloc(sizeof(ProcessHeap));
+    heap->quantum = quantum;
     heap->data = malloc(sizeof(Process*) * capacity);
     heap->size = 0;
     heap->capacity = capacity;
@@ -93,3 +94,9 @@ Process* heap_extract_max(ProcessHeap* heap) {
     return max;
 }
 
+void free_queue(ProcessHeap* heap) {
+    if (!heap) return;
+
+    free(heap->data);
+    free(heap);
+}
