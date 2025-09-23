@@ -12,11 +12,13 @@ void initialize_Process(Process* process, char* name, pid_t pid, size_t start_ti
     process->pid = pid;
     process->start_time = start_time;
     process->burst_duration = burst_duration;
+    process->time_spent_on_quantum = 0;
+    process->time_spent_on_burst = 0;
     process->bursts_remaining = bursts_remaining;
     process->io_wait_duration = io_wait_duration;
     process->time_spent_io_waiting = 0;
     process->deadline_time = deadline_time;
-    process->state = WAITING;
+    process->state = READY;
 }
 
 void free_Process(Process* process)

@@ -20,6 +20,8 @@ typedef struct
     pid_t pid;
     size_t start_time;
     size_t burst_duration;
+    size_t time_spent_on_quantum;
+    size_t time_spent_on_burst;
     size_t bursts_remaining;
     size_t io_wait_duration;
     size_t time_spent_io_waiting;
