@@ -6,13 +6,15 @@
 #include <string.h>
 #include "event.h"
 
-typedef struct
-{
+
+typedef struct {
     Event* events;
-    int events_remaining;
+    int number_of_events;
 } EventController;
 
 
 void initialize_EventController(EventController* event_controller, Event* events, int number_of_events);
 
-void execute_events(EventController* event_controller, Scheduler* scheduler);
+int compare_events(const void* a, const void* b);
+
+Event* get_event(EventController* event_controller, size_t time);

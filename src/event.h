@@ -5,8 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct
-{
+typedef struct {
     pid_t pid;
     size_t time;
 } Event;

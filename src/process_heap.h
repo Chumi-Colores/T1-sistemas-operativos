@@ -14,10 +14,13 @@ typedef struct {
     size_t current_tick;
 } ProcessHeap;
 
-ProcessHeap* create_heap(int quantum, int capacity);
+void initialize_ProcessHeap(ProcessHeap* heap, int quantum, int capacity);
 
 Process* heap_extract_max(ProcessHeap* heap);
 
 void heap_insert(ProcessHeap* heap, Process* proc);
+
+void update_queue_priorities(ProcessHeap* heap, size_t current_tick);
+
 
 void free_heap(ProcessHeap* heap);

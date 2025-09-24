@@ -5,14 +5,14 @@
 #include "process.h"
 #include "process_heap.h"
 
-ProcessHeap* create_heap(int quantum, int capacity) {
-    ProcessHeap* heap = malloc(sizeof(ProcessHeap));
+void initialize_ProcessHeap(ProcessHeap* heap, int quantum, int capacity)
+{
     heap->quantum = quantum;
-    heap->data = malloc(sizeof(Process*) * capacity);
+    heap->data = malloc(sizeof(Process*) * capacity / 4);
     heap->size = 0;
     heap->capacity = capacity;
     heap->current_tick = 0;
-    return heap;
+    return;
 }
 
 void swap(Process** process_1_pointer, Process** process_2_pointer) {
@@ -28,16 +28,33 @@ double get_process_priority(Process* process, size_t current_tick)
     return priority;
 }
 
-int compare_process(const Process* process_1_pointer, const Process* process_2_pointer, size_t current_tick) {
-    double process_1_priority = get_process_priority((Process*)process_1_pointer, current_tick);
-    double process_2_priority = get_process_priority((Process*)process_2_pointer, current_tick);
+int compare_process(const Process* process_1, const Process* process_2, size_t current_tick) {
+    if (process_1->state == KICKED && process_2->state != KICKED)
+    {
+        return 1;
+    }
+    else if (process_2->state == KICKED && process_1->state != KICKED)
+    {
+        return -1;
+    }
+    else if (process_1->state == READY && process_2->state != READY)
+    {
+        return 1;
+    }
+    else if (process_2->state == READY && process_1->state != READY)
+    {
+        return -1;
+    }
+    
+    double process_1_priority = get_process_priority((Process*)process_1, current_tick);
+    double process_2_priority = get_process_priority((Process*)process_2, current_tick);
 
     if (process_1_priority > process_2_priority) return 1;
     if (process_1_priority < process_2_priority) return -1;
 
     // Empate de prioridad, menor pid primero
-    if (process_1_pointer->pid < process_2_pointer->pid) return 1;
-    if (process_1_pointer->pid > process_2_pointer->pid) return -1;
+    if (process_1->pid < process_2->pid) return 1;
+    if (process_1->pid > process_2->pid) return -1;
 
     return 0; // son iguales, no debería pasar
 }
@@ -95,9 +112,14 @@ Process* heap_extract_max(ProcessHeap* heap) {
     return max;
 }
 
-void free_heap(ProcessHeap* heap) {
-    if (!heap) return;
+void update_queue_priorities(ProcessHeap* heap, size_t current_tick)
+{
+    for (int i = (heap->size / 2) -1 ; i >= 0; i--)
+    {
+        heapify_down(heap, i);
+    }
+}
 
+void free_heap(ProcessHeap* heap) {
     free(heap->data);
-    free(heap);
 }
