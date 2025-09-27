@@ -41,4 +41,11 @@ typedef struct {
 
 void initialize_Process(Process* process, char* name, pid_t pid, size_t start_time, size_t burst_duration, size_t bursts_remaining, size_t io_wait_duration, size_t deadline_time);
 
+
+int compare_end_times(const void* a, const void* b);
+
+
+void print_process_status(Process* process, FILE* output_file, const char* state_enum_strings[]);
+
+
 void free_Process(Process* process);

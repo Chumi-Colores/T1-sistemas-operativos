@@ -7,6 +7,7 @@
 #include "scheduler.h"
 #include "event_controller.h"
 
+
 void write_processes_from_file_to_array(FILE* file, Process* processes, int number_of_processes)
 {
     Process* p;
@@ -92,6 +93,8 @@ int main(int argc, char **argv) {
 
     run_simulation(&event_controller, &scheduler);
 
+    print_results(&scheduler, output_file);
+
     free_Scheduler(&scheduler);
 
 	fclose(input_file);
@@ -99,4 +102,3 @@ int main(int argc, char **argv) {
 
 	return EXIT_SUCCESS;
 }
-

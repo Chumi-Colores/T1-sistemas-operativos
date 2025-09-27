@@ -25,6 +25,40 @@ void initialize_Process(Process* process, char* name, pid_t pid, size_t start_ti
     process->time_spent_io_waiting = 0;
 }
 
+
+int compare_end_times(const void* a, const void* b)
+{
+    const Process* process1 = (const Process*)a;
+    const Process* process2 = (const Process*)b;
+
+    if (process1->turnaround_time < process2->turnaround_time) return -1;
+    if (process1->turnaround_time > process2->turnaround_time) return 1;
+    return 0;
+}
+
+
+void print_process_status(Process* process, FILE* output_file, const char* state_enum_strings[])
+{
+    // nombre_proceso_a,pid_a,estado_a,interrupciones_a,turnaround_a,response_a,waiting_a
+    fprintf(output_file, "%s ", process->name);
+    fprintf(output_file, "%d ", process->pid);
+    fprintf(output_file, "%s ", state_enum_strings[process->state]);
+    fprintf(output_file, "%zu ", process->interruptions);
+    fprintf(output_file, "%zu ", process->turnaround_time);
+    fprintf(output_file, "%zu ", process->response_time);
+    fprintf(output_file, "%zu\n", process->waiting_time);
+
+    printf("%s ", process->name);
+    printf("%d ", process->pid);
+    printf("%s ", state_enum_strings[process->state]);
+    printf("%zu ", process->interruptions);
+    printf("%zu ", process->turnaround_time);
+    printf("%zu ", process->response_time);
+    printf("%zu\n", process->waiting_time);
+
+}
+
+
 void free_Process(Process* process)
 {
     free(process->name);

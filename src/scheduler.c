@@ -266,6 +266,27 @@ void update_ticks(Scheduler* scheduler){
     update_waiting_times(scheduler);
 }
 
+
+void print_results(Scheduler* scheduler, FILE* output_file)
+{
+    const char* enum_strings[] = {
+        "NOT_INITIATED",
+        "WAITING",
+        "READY",
+        "RUNNING",
+        "FINISHED",
+        "DEAD",
+        "KICKED"
+    };
+    qsort(scheduler->processes, scheduler->process_count, sizeof(Process), compare_end_times);
+    for (size_t i = 0; i < scheduler->process_count; i++)
+    {
+        print_process_status(&scheduler->processes[i], output_file, enum_strings);
+    }
+    
+}
+
+
 void free_Scheduler(Scheduler* scheduler)
 {
     for (size_t i = 0; i < scheduler->process_count; i++)

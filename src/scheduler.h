@@ -38,4 +38,6 @@ void insert_new_process(Scheduler* scheduler, Event* event);
 
 void update_ticks(Scheduler* scheduler);
 
+void print_results(Scheduler* scheduler, FILE* output_file);
+
 void free_Scheduler(Scheduler* scheduler);
