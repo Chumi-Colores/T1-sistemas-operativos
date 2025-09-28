@@ -10,6 +10,7 @@
 void initialize_EventController(EventController* event_controller, Event* events, int number_of_events)
 {
     event_controller->events = events;
+    event_controller->pending_events = number_of_events;
     qsort(events, number_of_events, sizeof(Event), compare_events);
     event_controller->number_of_events = number_of_events;
 }

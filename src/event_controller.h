@@ -10,6 +10,7 @@
 typedef struct {
     Event* events;
     int number_of_events;
+    int pending_events;
 } EventController;
 
 

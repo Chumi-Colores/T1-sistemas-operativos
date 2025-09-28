@@ -231,10 +231,24 @@ Process* get_process(Scheduler* scheduler, pid_t pid)
     return NULL; // no encontrado
 }
 
+
+bool event_can_enter_cpu(Event* event, Scheduler* scheduler)
+{
+    if (!event)
+    {
+        return false;
+    }
+    if (!scheduler->running_process)
+    {
+        return true;
+    }
+    return event->pid != scheduler->running_process->pid;
+}
+
 void insert_new_process(Scheduler* scheduler, Event* event)
 {
     // 1) Si se cumplió el tiempo de un evento, ingresar el proceso indicado.
-    if (event && scheduler->running_process && event->pid != scheduler->running_process->pid)
+    if (event_can_enter_cpu(event, scheduler))
     {
         Process* process = get_process(scheduler, event->pid);
         if (!process)
@@ -252,8 +266,7 @@ void insert_new_process(Scheduler* scheduler, Event* event)
         int queue = find_queue_from_process(&scheduler->high_queue, &scheduler->low_queue, process);
         if (queue == -1)
         {
-            printf("ERROR ESTO NO DEBERÍA PASAR\n");
-            return;
+            scheduler->heap_that_running_process_came_from = &scheduler->high_queue;
         }
         if (queue == 0){
             scheduler->heap_that_running_process_came_from = &scheduler->low_queue;
