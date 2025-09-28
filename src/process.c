@@ -46,7 +46,7 @@ void print_process_status(Process* process, FILE* output_file, const char* state
     fprintf(output_file, "%s ", state_enum_strings[process->state]);
     fprintf(output_file, "%zu ", process->interruptions);
     fprintf(output_file, "%zu ", process->turnaround_time);
-    fprintf(output_file, "%zu ", process->response_time);
+    fprintf(output_file, "%zu ", (process->response_time - process->start_time)+1);
     fprintf(output_file, "%zu\n", process->waiting_time);
 
     printf("%s ", process->name);
@@ -54,7 +54,7 @@ void print_process_status(Process* process, FILE* output_file, const char* state
     printf("%s ", state_enum_strings[process->state]);
     printf("%zu ", process->interruptions);
     printf("%zu ", process->turnaround_time);
-    printf("%zu ", process->response_time + 1);
+    printf("%zu ", (process->response_time - process->start_time)+1);
     printf("%zu\n", process->waiting_time);
 
 }
