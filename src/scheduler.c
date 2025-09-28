@@ -58,9 +58,10 @@ void update_expired_processes(Scheduler* scheduler)
     for (size_t i = 0; i < high_queue->size; i++)
     {
         // TODO: revisar esto
-        if (high_queue->data[i]->deadline_time <= tick && high_queue->data[i]->bursts_remaining > 0)
+        if (high_queue->data[i]->deadline_time <= tick && high_queue->data[i]->bursts_remaining > 0 && high_queue->data[i]->state != DEAD && high_queue->data[i]->state != FINISHED)
         {
-            printf("PROCESO MURIÓOOOOOOOOOOOO\n");
+            printf("PROCESO MURIÓOOOOOOOOOOOO1\n");
+            scheduler->pending_processes -= 1;
             high_queue->data[i]->state = DEAD;
             set_turnaround(high_queue->data[i], scheduler->current_tick); // TODO: EL ENUNCIADO NO HABLA DE ESTO
         }
@@ -71,6 +72,7 @@ void update_expired_processes(Scheduler* scheduler)
         if (low_queue->data[i]->deadline_time <= tick && low_queue->data[i]->bursts_remaining > 0)
         {
             low_queue->data[i]->state = DEAD;
+            scheduler->pending_processes -= 1;
             printf("PROCESO MURIÓOOOOOOOOOOOO\n");
             set_turnaround(low_queue->data[i], scheduler->current_tick); // TODO: EL ENUNCIADO NO HABLA DE ESTO
         }
@@ -198,11 +200,6 @@ void update_priorities(Scheduler* scheduler)
 {
     update_queue_priorities(&scheduler->high_queue, scheduler->current_tick);
     update_queue_priorities(&scheduler->low_queue, scheduler->current_tick);
-
-    for (int i = 0; i<scheduler->high_queue.size; i++)
-    {
-        printf("%s con prioridad %f\n", scheduler->high_queue.data[i]->name, get_process_priority(scheduler->high_queue.data[i], scheduler->current_tick));
-    }
 }
 
 
