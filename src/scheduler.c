@@ -27,6 +27,7 @@ void initialize_Scheduler(Scheduler* scheduler, Process* processes, int number_o
 {
     scheduler->processes = processes;
     qsort(processes, number_of_processes, sizeof(Process), compare_processes);
+    scheduler->time_since_being_empty = 0;
     scheduler->process_count = number_of_processes;
     scheduler->pending_processes = number_of_processes;
     initialize_ProcessHeap(&scheduler->high_queue, 2*q, number_of_processes);
@@ -59,6 +60,7 @@ void update_expired_processes(Scheduler* scheduler)
         // TODO: revisar esto
         if (high_queue->data[i]->deadline_time <= tick && high_queue->data[i]->bursts_remaining > 0)
         {
+            printf("PROCESO MURIÓOOOOOOOOOOOO\n");
             high_queue->data[i]->state = DEAD;
             set_turnaround(high_queue->data[i], scheduler->current_tick); // TODO: EL ENUNCIADO NO HABLA DE ESTO
         }
@@ -69,6 +71,7 @@ void update_expired_processes(Scheduler* scheduler)
         if (low_queue->data[i]->deadline_time <= tick && low_queue->data[i]->bursts_remaining > 0)
         {
             low_queue->data[i]->state = DEAD;
+            printf("PROCESO MURIÓOOOOOOOOOOOO\n");
             set_turnaround(low_queue->data[i], scheduler->current_tick); // TODO: EL ENUNCIADO NO HABLA DE ESTO
         }
     }
@@ -81,7 +84,6 @@ void update_running_process(Scheduler* scheduler, Event* event)
         return;
     }
 
-    scheduler->running_process->time_spent_on_burst ++;
     scheduler->running_process->time_spent_on_quantum ++;
 
     bool finished_cpu_burst = false;
@@ -141,7 +143,7 @@ void update_running_process(Scheduler* scheduler, Event* event)
             scheduler->running_process = NULL;
             return;
         }
-        scheduler->running_process->state = WAITING;
+        scheduler->running_process->state = READY;
         scheduler->running_process->last_time_process_left_cpu = scheduler->current_tick;
         scheduler->running_process->time_spent_on_quantum = 0;
         heap_insert(&scheduler->low_queue, scheduler->running_process); // Devolver a cola baja
@@ -196,6 +198,11 @@ void update_priorities(Scheduler* scheduler)
 {
     update_queue_priorities(&scheduler->high_queue, scheduler->current_tick);
     update_queue_priorities(&scheduler->low_queue, scheduler->current_tick);
+
+    for (int i = 0; i<scheduler->high_queue.size; i++)
+    {
+        printf("%s con prioridad %f\n", scheduler->high_queue.data[i]->name, get_process_priority(scheduler->high_queue.data[i], scheduler->current_tick));
+    }
 }
 
 
@@ -242,7 +249,18 @@ void insert_new_process(Scheduler* scheduler, Event* event)
         }
         process->state = RUNNING;
         scheduler->running_process = process;
-        scheduler->heap_that_running_process_came_from = &scheduler->high_queue; // TODO: revisar esto
+        int queue = find_queue_from_process(&scheduler->high_queue, &scheduler->low_queue, process);
+        if (queue == -1)
+        {
+            printf("ERROR ESTO NO DEBERÍA PASAR\n");
+            return;
+        }
+        if (queue == 0){
+            scheduler->heap_that_running_process_came_from = &scheduler->low_queue;
+        }
+        else {
+            scheduler->heap_that_running_process_came_from = &scheduler->high_queue;
+        }
     }
     // 2) Primer proceso en estado READY de la cola High.
     else if (!scheduler->running_process && scheduler->high_queue.size > 0 && scheduler->high_queue.data[0]->state == READY)
@@ -294,15 +312,14 @@ void update_ticks(Scheduler* scheduler){
     scheduler->high_queue.current_tick = tick;
     scheduler->low_queue.current_tick = tick;
 
-    for (size_t i = 0; i < scheduler->high_queue.size; i++)
+    for (size_t i = 0; i < scheduler->process_count; i++)
     {
-        scheduler->high_queue.data[i]->waiting_time += 1;
+        if (scheduler->processes[i].state == READY || scheduler->processes[i].state == WAITING) 
+        {
+            scheduler->processes[i].waiting_time += 1;
+        }
     }
 
-    for (size_t i = 0; i < scheduler->low_queue.size; i++)
-    {
-        scheduler->low_queue.data[i]->waiting_time += 1;
-    }
 
     update_waiting_times(scheduler);
 }

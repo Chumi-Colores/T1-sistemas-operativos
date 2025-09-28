@@ -24,8 +24,24 @@ void swap(Process** process_1_pointer, Process** process_2_pointer) {
 double get_process_priority(Process* process, size_t current_tick)
 {
     size_t time_until_deadline = process->deadline_time - current_tick;
-    double priority = (1.0/time_until_deadline) + process->bursts_remaining;
+    double priority = (1.0 / (double)time_until_deadline) + (double)process->bursts_remaining;
     return priority;
+}
+
+int find_queue_from_process(ProcessHeap* high_queue, ProcessHeap* low_queue, Process* process) {
+    for (size_t i = 0; i < high_queue->size; i++)
+    {
+        if (high_queue->data[i] == process) {
+            return 1; // found in high queue
+        }
+    }
+    for (size_t i = 0; i < low_queue->size; i++)
+    {
+        if (low_queue->data[i] == process) {
+            return 0; // found in low queue
+        }
+    }
+    return -1; // not found in either queue
 }
 
 int compare_process(const Process* process_1, const Process* process_2, size_t current_tick) {

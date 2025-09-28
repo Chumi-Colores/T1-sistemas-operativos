@@ -46,7 +46,8 @@ void write_events_from_file_to_array(FILE* file, Event* events, int N)
 void run_simulation(EventController* event_controller, Scheduler* scheduler)
 {
     printf("Running simulation...\n");
-    while (scheduler->pending_processes > 0)
+    int max_iterations = 30;
+    while (scheduler->pending_processes > 0 && max_iterations-- > 0)
     {
         Event* event = get_event(event_controller, scheduler->current_tick);
 
@@ -56,16 +57,22 @@ void run_simulation(EventController* event_controller, Scheduler* scheduler)
 
         update_running_process(scheduler, event);
 
+        if (scheduler->running_process)
+        {
+            printf("Did a tick for a burst\n");
+            scheduler->running_process->time_spent_on_burst += 1;
+        }
+
         update_queues(scheduler);
 
         update_priorities(scheduler);
 
         insert_new_process(scheduler, event);
         
+        printf("Current process: %s\n", scheduler->running_process ? scheduler->running_process->name : "None");
         printf("Tick terminado %zu\n", scheduler->current_tick + 1);
         update_ticks(scheduler);
-        printf("Pending processes: %d\n", scheduler->pending_processes);
-        printf("Current process: %s\n", scheduler->running_process ? scheduler->running_process->name : "None");
+        printf("-------------------------------\n");
     }
 }
 
