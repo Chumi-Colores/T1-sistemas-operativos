@@ -12,7 +12,7 @@
 typedef struct {
     Process* processes;
     int process_count;
-    int not_done_processes;
+    int pending_processes;
     ProcessHeap high_queue;
     ProcessHeap low_queue;
     size_t current_tick;

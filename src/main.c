@@ -22,6 +22,7 @@ void write_processes_from_file_to_array(FILE* file, Process* processes, int numb
     {
         p = &processes[i];
         fscanf(file, "%127s %d %zu %zu %zu %zu %zu", name, &pid, &start_time, &burst_duration, &bursts_remaining, &io_wait_duration, &deadline_time);
+        printf("Read process: %s %d %zu %zu %zu %zu %zu\n", name, pid, start_time, burst_duration, bursts_remaining, io_wait_duration, deadline_time);
         initialize_Process(p, name, pid, start_time, burst_duration, bursts_remaining, io_wait_duration, deadline_time);
     }
 }
@@ -36,6 +37,7 @@ void write_events_from_file_to_array(FILE* file, Event* events, int N)
     {
         event = &events[i];
         fscanf(file, "%d %zu", &pid, &time);
+        printf("Read event: %d %zu\n", pid, time);
         initialize_Event(event, pid, time);
     }
 }
@@ -44,18 +46,26 @@ void write_events_from_file_to_array(FILE* file, Event* events, int N)
 void run_simulation(EventController* event_controller, Scheduler* scheduler)
 {
     printf("Running simulation...\n");
-    while (scheduler->not_done_processes > 0)
+    while (scheduler->pending_processes > 0)
     {
         Event* event = get_event(event_controller, scheduler->current_tick);
+
         update_waiting_processes(scheduler);
+
         update_expired_processes(scheduler);
+
         update_running_process(scheduler, event);
+
         update_queues(scheduler);
+
         update_priorities(scheduler);
+
         insert_new_process(scheduler, event);
         
-        printf("Tick terminado %zu\n", scheduler->current_tick);
+        printf("Tick terminado %zu\n", scheduler->current_tick + 1);
         update_ticks(scheduler);
+        printf("Pending processes: %d\n", scheduler->pending_processes);
+        printf("Current process: %s\n", scheduler->running_process ? scheduler->running_process->name : "None");
     }
 }
 
@@ -90,6 +100,7 @@ int main(int argc, char **argv) {
 
     EventController event_controller;
     initialize_EventController(&event_controller, events, N);
+
 
     run_simulation(&event_controller, &scheduler);
 

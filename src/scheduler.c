@@ -7,6 +7,10 @@
 #include "scheduler.h"
 #include "event_controller.h"
 
+void set_turnaround(Process* process, size_t current_tick)
+{
+    process->turnaround_time = current_tick - process->start_time;
+}
 
 int compare_processes(const void* a, const void* b)
 {
@@ -24,7 +28,7 @@ void initialize_Scheduler(Scheduler* scheduler, Process* processes, int number_o
     scheduler->processes = processes;
     qsort(processes, number_of_processes, sizeof(Process), compare_processes);
     scheduler->process_count = number_of_processes;
-    scheduler->not_done_processes = number_of_processes;
+    scheduler->pending_processes = number_of_processes;
     initialize_ProcessHeap(&scheduler->high_queue, 2*q, number_of_processes);
     initialize_ProcessHeap(&scheduler->low_queue, q, number_of_processes);
     scheduler->current_tick = 0;
@@ -52,9 +56,11 @@ void update_expired_processes(Scheduler* scheduler)
     ProcessHeap* low_queue = &scheduler->low_queue;
     for (size_t i = 0; i < high_queue->size; i++)
     {
+        // TODO: revisar esto
         if (high_queue->data[i]->deadline_time <= tick && high_queue->data[i]->bursts_remaining > 0)
         {
             high_queue->data[i]->state = DEAD;
+            set_turnaround(high_queue->data[i], scheduler->current_tick); // TODO: EL ENUNCIADO NO HABLA DE ESTO
         }
     }
 
@@ -63,6 +69,7 @@ void update_expired_processes(Scheduler* scheduler)
         if (low_queue->data[i]->deadline_time <= tick && low_queue->data[i]->bursts_remaining > 0)
         {
             low_queue->data[i]->state = DEAD;
+            set_turnaround(low_queue->data[i], scheduler->current_tick); // TODO: EL ENUNCIADO NO HABLA DE ESTO
         }
     }
 }
@@ -74,8 +81,8 @@ void update_running_process(Scheduler* scheduler, Event* event)
         return;
     }
 
-    scheduler->running_process->time_spent_on_burst += 1;
-    scheduler->running_process->time_spent_on_quantum += 1;
+    scheduler->running_process->time_spent_on_burst ++;
+    scheduler->running_process->time_spent_on_quantum ++;
 
     bool finished_cpu_burst = false;
     if (scheduler->running_process->time_spent_on_burst >= scheduler->running_process->burst_duration)
@@ -91,32 +98,52 @@ void update_running_process(Scheduler* scheduler, Event* event)
         if (scheduler->running_process->bursts_remaining > 0)
         {
             scheduler->running_process->state = DEAD;
+            set_turnaround(scheduler->running_process, scheduler->current_tick); // TODO: EL ENUNCIADO NO HABLA DE ESTO
         }
         else if (scheduler->running_process->bursts_remaining == 0)
         {
+            printf("PROCESO TERMINÓOOOOOOOOOOOOO\n");
             scheduler->running_process->state = FINISHED;
+            set_turnaround(scheduler->running_process, scheduler->current_tick);
         }
-        scheduler->not_done_processes -= 1;
+        scheduler->pending_processes -= 1;
         scheduler->running_process = NULL;
     }
     
     // 2) Terminó su CPU burst
     else if (finished_cpu_burst)
     {
+        if (scheduler->running_process->bursts_remaining == 0)
+        {
+            printf("PROCESO TERMINÓOOOOOOOOOOOOO\n");
+            scheduler->running_process->state = FINISHED;
+            set_turnaround(scheduler->running_process, scheduler->current_tick);
+            scheduler->pending_processes -= 1;
+            scheduler->running_process = NULL;
+            return;
+        }
         scheduler->running_process->state = WAITING;
         scheduler->running_process->last_time_process_left_cpu = scheduler->current_tick;
         scheduler->running_process->time_spent_on_burst = 0;
-        heap_insert(scheduler->heap_that_running_process_came_from, scheduler->running_process); // Devolver a cola que vino
+        heap_insert(&scheduler->high_queue, scheduler->running_process); // Devolver a cola alta
         scheduler->running_process = NULL;
     }
 
     // 3) Su quantum se acabó
     else if (scheduler->running_process->time_spent_on_quantum >= scheduler->heap_that_running_process_came_from->quantum)
     {
-        scheduler->running_process->state = READY;
+        if (scheduler->running_process->bursts_remaining == 0)
+        {
+            printf("PROCESO TERMINÓOOOOOOOOOOOOO\n");
+            scheduler->running_process->state = FINISHED;
+            set_turnaround(scheduler->running_process, scheduler->current_tick);
+            scheduler->pending_processes -= 1;
+            scheduler->running_process = NULL;
+            return;
+        }
+        scheduler->running_process->state = WAITING;
         scheduler->running_process->last_time_process_left_cpu = scheduler->current_tick;
         scheduler->running_process->time_spent_on_quantum = 0;
-        scheduler->running_process->time_spent_on_burst = 0; // NO ESTOY SEGURO SI SE RESETEA
         heap_insert(&scheduler->low_queue, scheduler->running_process); // Devolver a cola baja
         scheduler->running_process = NULL;
     }
@@ -126,7 +153,6 @@ void update_running_process(Scheduler* scheduler, Event* event)
     {
         scheduler->running_process->state = KICKED;
         scheduler->running_process->last_time_process_left_cpu = scheduler->current_tick;
-        scheduler->running_process->time_spent_on_burst = 0; // NO ESTOY SEGURO SI SE RESETEA
         scheduler->running_process->time_spent_on_quantum = 0; // NO ESTOY SEGURO SI SE RESETEA
         heap_insert(&scheduler->high_queue, scheduler->running_process); // Devolver a cola alta
         scheduler->running_process = NULL;
@@ -137,8 +163,8 @@ void update_running_process(Scheduler* scheduler, Event* event)
 
 void update_queues(Scheduler* scheduler)
 {
-    // Ingresar los procesos a las colas seg´un corresponda:
-    //  1) Si un proceso sali´o de la CPU, ingresarlo a la cola que corresponda.
+    // Ingresar los procesos a las colas según corresponda:
+    // 1) Si un proceso salió de la CPU, ingresarlo a la cola que corresponda.
     // se hace al final del paso anterior por conveniencia.
 
 
@@ -147,11 +173,12 @@ void update_queues(Scheduler* scheduler)
     {
         if (scheduler->processes[i].start_time == scheduler->current_tick)
         {
+            scheduler->processes[i].state = READY;
             heap_insert(&scheduler->high_queue, &scheduler->processes[i]);
         }
     }
-    
-    //  3) Para cada proceso de la cola Low, revisar si se cumple la condici´on para subir a la cola High y cambiarlos de cola seg´un corresponda.
+
+    //  3) Para cada proceso de la cola Low, revisar si se cumple la condición para subir a la cola High y cambiarlos de cola según corresponda.
     for (int i = scheduler->low_queue.size - 1; i >= 0; i--)
     {
         if (2 * scheduler->low_queue.data[i]->deadline_time < scheduler->current_tick - scheduler->low_queue.data[i]->last_time_process_left_cpu)
@@ -199,44 +226,48 @@ Process* get_process(Scheduler* scheduler, pid_t pid)
 
 void insert_new_process(Scheduler* scheduler, Event* event)
 {
-    // 1) Si se cumpli´o el tiempo de un evento, ingresar el proceso indicado.
-    if (event && event->pid != scheduler->running_process->pid)
+    // 1) Si se cumplió el tiempo de un evento, ingresar el proceso indicado.
+    if (event && scheduler->running_process && event->pid != scheduler->running_process->pid)
     {
         Process* process = get_process(scheduler, event->pid);
         if (!process)
         {
-            printf("Process of pid: %d not found\n", event->pid);
+            printf("ERROR ESTO NO DEBERÍA PASAR\n");
             return;
         }
         
-        if (process->state == NOT_INITIATED)
-        {
-            process->state = RUNNING;
-            process->response_time = scheduler->current_tick;
-            scheduler->running_process = process;
-            scheduler->heap_that_running_process_came_from = &scheduler->high_queue;
-        }
-    }
-    // 2) Primer proceso en estado READY de la cola High.
-    else if (scheduler->high_queue.size > 0 && scheduler->high_queue.data[0]->state == READY)
-    {
-        Process* process = heap_extract_max(&scheduler->high_queue);
         if (process->response_time == -1)
         {
             process->response_time = scheduler->current_tick;
         }
+        process->state = RUNNING;
+        scheduler->running_process = process;
+        scheduler->heap_that_running_process_came_from = &scheduler->high_queue; // TODO: revisar esto
+    }
+    // 2) Primer proceso en estado READY de la cola High.
+    else if (!scheduler->running_process && scheduler->high_queue.size > 0 && scheduler->high_queue.data[0]->state == READY)
+    {
+        Process* process = heap_extract_max(&scheduler->high_queue);
+
+        if (process->response_time == -1)
+        {
+            process->response_time = scheduler->current_tick;
+        }
+        process->state = RUNNING;
         scheduler->running_process = process;
         scheduler->heap_that_running_process_came_from = &scheduler->high_queue;
     }
     
     // 3) Primer proceso en estado READY de la cola Low
-    else if (scheduler->low_queue.size > 0 && scheduler->low_queue.data[0]->state == READY)
+    else if (!scheduler->running_process && scheduler->low_queue.size > 0 && scheduler->low_queue.data[0]->state == READY)
     {
         Process* process = heap_extract_max(&scheduler->low_queue);
+
         if (process->response_time == -1)
         {
             process->response_time = scheduler->current_tick;
         }
+        process->state = RUNNING;
         scheduler->running_process = process;
         scheduler->heap_that_running_process_came_from = &scheduler->low_queue;
     }
@@ -263,6 +294,16 @@ void update_ticks(Scheduler* scheduler){
     scheduler->high_queue.current_tick = tick;
     scheduler->low_queue.current_tick = tick;
 
+    for (size_t i = 0; i < scheduler->high_queue.size; i++)
+    {
+        scheduler->high_queue.data[i]->waiting_time += 1;
+    }
+
+    for (size_t i = 0; i < scheduler->low_queue.size; i++)
+    {
+        scheduler->low_queue.data[i]->waiting_time += 1;
+    }
+
     update_waiting_times(scheduler);
 }
 
@@ -278,7 +319,7 @@ void print_results(Scheduler* scheduler, FILE* output_file)
         "DEAD",
         "KICKED"
     };
-    qsort(scheduler->processes, scheduler->process_count, sizeof(Process), compare_end_times);
+
     for (size_t i = 0; i < scheduler->process_count; i++)
     {
         print_process_status(&scheduler->processes[i], output_file, enum_strings);

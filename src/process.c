@@ -10,9 +10,10 @@ void initialize_Process(Process* process, char* name, pid_t pid, size_t start_ti
     process->name = malloc(strlen(name) + 1);
     strcpy(process->name, name);
     process->pid = pid;
-    process->state = READY;
+    process->state = NOT_INITIATED;
     process->interruptions = 0;
     process->response_time = -1;
+    process->waiting_time = 0;
 
     process->start_time = start_time;
     process->burst_duration = burst_duration;
@@ -53,7 +54,7 @@ void print_process_status(Process* process, FILE* output_file, const char* state
     printf("%s ", state_enum_strings[process->state]);
     printf("%zu ", process->interruptions);
     printf("%zu ", process->turnaround_time);
-    printf("%zu ", process->response_time);
+    printf("%zu ", process->response_time + 1);
     printf("%zu\n", process->waiting_time);
 
 }
