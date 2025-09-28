@@ -7,6 +7,21 @@
 #include "scheduler.h"
 #include "event_controller.h"
 
+
+bool event_can_enter_cpu(Event* event, Scheduler* scheduler)
+{
+    if (!event)
+    {
+        return false;
+    }
+    if (!scheduler->running_process)
+    {
+        return true;
+    }
+    return event->pid != scheduler->running_process->pid;
+}
+
+
 void set_turnaround(Process* process, size_t current_tick)
 {
     process->turnaround_time = current_tick - process->start_time;
@@ -126,6 +141,7 @@ void update_running_process(Scheduler* scheduler, Event* event)
             scheduler->running_process = NULL;
             return;
         }
+        scheduler->running_process->interruptions += 1;
         scheduler->running_process->state = WAITING;
         scheduler->running_process->last_time_process_left_cpu = scheduler->current_tick;
         scheduler->running_process->time_spent_on_burst = 0;
@@ -153,8 +169,9 @@ void update_running_process(Scheduler* scheduler, Event* event)
     }
 
     // 4) Sacar proceso por evento
-    else if (event && event->pid != scheduler->running_process->pid)
+    else if (event_can_enter_cpu(event, scheduler))
     {
+        scheduler->running_process->interruptions += 1;
         scheduler->running_process->state = KICKED;
         scheduler->running_process->last_time_process_left_cpu = scheduler->current_tick;
         scheduler->running_process->time_spent_on_quantum = 0; // NO ESTOY SEGURO SI SE RESETEA
@@ -164,6 +181,7 @@ void update_running_process(Scheduler* scheduler, Event* event)
 
     // 5) Continua ejecutando con normalidad
 }
+
 
 void update_queues(Scheduler* scheduler)
 {
@@ -226,20 +244,6 @@ Process* get_process(Scheduler* scheduler, pid_t pid)
         }
     }
     return NULL; // no encontrado
-}
-
-
-bool event_can_enter_cpu(Event* event, Scheduler* scheduler)
-{
-    if (!event)
-    {
-        return false;
-    }
-    if (!scheduler->running_process)
-    {
-        return true;
-    }
-    return event->pid != scheduler->running_process->pid;
 }
 
 void insert_new_process(Scheduler* scheduler, Event* event)
