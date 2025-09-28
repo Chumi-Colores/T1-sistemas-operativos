@@ -95,7 +95,7 @@ void update_running_process(Scheduler* scheduler, Event* event)
     
 
     // 1) Alcanzó su deadline
-    if (scheduler->current_tick == scheduler->running_process->deadline_time)
+    if (scheduler->current_tick >= scheduler->running_process->deadline_time)
     {
         if (scheduler->running_process->bursts_remaining > 0)
         {
@@ -261,6 +261,11 @@ void insert_new_process(Scheduler* scheduler, Event* event)
         {
             process->response_time = scheduler->current_tick;
         }
+        if (process->state == DEAD || process->state == FINISHED)
+        {
+            scheduler->pending_processes += 1;
+        }
+
         process->state = RUNNING;
         scheduler->running_process = process;
         int queue = find_queue_from_process(&scheduler->high_queue, &scheduler->low_queue, process);

@@ -46,7 +46,7 @@ void write_events_from_file_to_array(FILE* file, Event* events, int N)
 void run_simulation(EventController* event_controller, Scheduler* scheduler)
 {
     printf("Running simulation...\n");
-    int max_iterations = 400;
+    int max_iterations = 280;
     while ((scheduler->pending_processes > 0 || event_controller->pending_events > 0) && max_iterations-- > 0)
     {
         Event* event = get_event(event_controller, scheduler->current_tick);
